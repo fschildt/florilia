@@ -30,7 +30,7 @@ echo ""
 echo "========================="
 echo "compiling florilia"
 echo "========================="
-#./build/asset_generator # update assets memory
+./build/asset_generator # update assets memory
 SOURCES="code/client/florilia.c code/client/linux/lin_florilia.c"
 LFLAGS="-lX11 -lGL -lasound -lm"
 $CC $CFLAGS_COMMON $SOURCES $LFLAGS -o build/florilia

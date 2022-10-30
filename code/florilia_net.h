@@ -68,4 +68,5 @@ typedef struct {
     u16 type;
     u16 sender_len;
     u16 message_len;
+    s64 time_posix;
 } FNS_Chat_Message;

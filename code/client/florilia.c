@@ -1,6 +1,11 @@
 #include "florilia.h"
 #include "generated/assets_memory.h"
 
+#include <stdio.h> // @TEMPORARY, printf is expensive
+#include <time.h>
+#include <string.h>
+#include <math.h>
+
 
 Florilia_Platform *g_platform; // @TEMPORARY
 
@@ -35,8 +40,6 @@ typedef struct {
 
 
 
-#include <string.h>
-#include <math.h>
 
 
 internal void
@@ -263,10 +266,11 @@ draw_rect(Florilia_Offscreen_Buffer *screen, Rect rect, V3 color)
 internal void
 draw_border(Florilia_Offscreen_Buffer *screen, Rect rect, s32 border_size, V3 color)
 {
-    s32 y0_top = rect.y1 - border_size;
-    s32 y1_bot = rect.y0 + border_size;
-    s32 x0_right = rect.x1 - border_size;
-    s32 x1_left  = rect.x0 + border_size;
+    assert(border_size > 0);
+    s32 y0_top = rect.y1 - border_size + 1;
+    s32 y1_bot = rect.y0 + border_size - 1;
+    s32 x0_right = rect.x1 - border_size + 1;
+    s32 x1_left  = rect.x0 + border_size - 1;
 
 
     // horizontal

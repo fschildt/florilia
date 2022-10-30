@@ -14,7 +14,7 @@ draw_login(Florilia_Offscreen_Buffer *screen, Login *login, Font *font)
 
     // settings
     s32 title_height = font->y_advance * 3;
-    s32 textin_border_size = font->y_advance / 16;
+    s32 textin_border_size = font->y_advance / 8;
     s32 textin_margin      = font->y_advance / 4;
     s32 textin_width       = font->y_advance * 16;
     s32 textin_height      = font->y_advance + 2*(textin_border_size + textin_margin);

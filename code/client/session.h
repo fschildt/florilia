@@ -1,4 +1,11 @@
 typedef struct {
+    s8 hours;
+    s8 minutes;
+    s8 seconds;
+} Time;
+
+typedef struct {
+    s64 time_posix;
     char username[32];
     char content[256];
 } Chat_Message;

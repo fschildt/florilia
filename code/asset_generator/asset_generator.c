@@ -157,8 +157,11 @@ generate_font(u32 *bytes_generated, Memory_Arena *arena, Font *font, const char 
     descent  = scale * descent;
     line_gap = scale * line_gap;
 
+    int x_advance;
+    stbtt_GetCodepointHMetrics(&font_info, 'f', &x_advance, 0);
     font->baseline = baseline;
     font->y_advance = ascent - descent + scale*line_gap;
+    font->x_advance = x_advance * scale;
 
     // set glyph metadata (hmetrics) AND generate glyph bitmaps
     u32 cnt_glyphs = '~' - ' ' + 1;

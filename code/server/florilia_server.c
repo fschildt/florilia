@@ -194,6 +194,7 @@ serve_client(Client_Manager *manager, Client *client)
             s_desc.type        = FNS_CHAT_MESSAGE;
             s_desc.sender_len  = client->name_len;
             s_desc.message_len = c_desc->message_len;
+            s_desc.time_posix  = time(0);
 
             u32 package_size = sizeof(s_desc) + s_desc.sender_len + s_desc.message_len;
             u8 package[package_size];

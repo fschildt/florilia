@@ -1,8 +1,6 @@
 #include "florilia_platform.h"
 #include "../florilia_net.h"
 
-#include <stdio.h> // @TEMPORARY, printf is expensive
-
 
 internal void
 zero_size(void *buff, u32 size)
@@ -73,6 +71,7 @@ typedef struct {
 typedef struct {
     s32 baseline;
     s32 y_advance;
+    s32 x_advance;
     Glyph glyphs[96];
 } Font;
 

@@ -18,48 +18,78 @@ init_drawn_history_text(char *text, const char *username, const char *message)
 }
 
 internal void
-draw_history(Florilia_Offscreen_Buffer *screen, Chat_History *history, Rect rect, Font *font)
+draw_message(Florilia_Offscreen_Buffer *screen, Font *font, Chat_Message *message, Rect *rect_messages)
+{
+    s32 margin = font->y_advance/4;
+
+    Rect rect_message = {
+        rect_messages->x0 + margin,
+        rect_messages->y0 + margin,
+        rect_messages->x1,
+        rect_messages->y1
+    };
+
+    int text_width;
+
+
+    // time
+    struct tm *time_local = localtime(&message->time_posix);
+    char time_str[8];
+    sprintf(time_str, "[%02d:%02d]", time_local->tm_hour, time_local->tm_min);
+
+    text_width = get_text_width(time_str, font);
+    draw_text(screen, font, time_str, -1, rect_message.x0, rect_message.y0);
+    rect_message.x0 += text_width;
+
+
+    // separator
+    rect_message.x0 += font->x_advance;
+
+
+    // username
+    draw_text(screen, font, "<", -1, rect_message.x0, rect_message.y0);
+    rect_message.x0 += font->x_advance;
+
+    text_width = get_text_width(message->username, font);
+    draw_text(screen, font, message->username, -1, rect_message.x0, rect_message.y0);
+    rect_message.x0 += text_width;
+
+    draw_text(screen, font, ">", -1, rect_message.x0, rect_message.y0);
+    rect_message.x0 += font->x_advance * 2;
+
+
+    // message
+    draw_text(screen, font, message->content, -1, rect_message.x0, rect_message.y0);
+
+
+    rect_messages->y0 += font->y_advance;
+}
+
+internal void
+draw_history(Florilia_Offscreen_Buffer *screen, Chat_History *history, Rect rect_messages, Font *font)
 {
     s32 border_size = font->y_advance / 8;
     V3 border_color = {{0, 0, 0}};
-    draw_border(screen, rect, border_size, border_color);
-
+    draw_border(screen, rect_messages, border_size, border_color);
 
     u32 base = history->base;
     u32 cnt  = history->cnt;
-
-    s32 ymax = rect.y1 - font->y_advance;
-    s32 xoff = font->y_advance / 2;
-    s32 ygap = font->y_advance / 2;
-
-    s32 x = rect.x0 + border_size + xoff;
-    s32 y = rect.y0 + border_size + ygap;
     if (cnt > 0)
     {
         u32 below = base == 0 ? 0 : base-1;
         u32 above = cnt;
 
-        char text[256];
-        while (below < base && y <= ymax)
+        while (below < base && rect_messages.y0 <= rect_messages.y1)
         {
-            Chat_Message *msg = &history->messages[below];
-
-            init_drawn_history_text(text, msg->username, msg->content);
-            draw_text(screen, font, text, -1, x, y);
-
-            y += font->y_advance + ygap;
-
+            Chat_Message *message = &history->messages[below];
+            draw_message(screen, font, message, &rect_messages);
             below--;
         }
 
-        while (above > base && y <= ymax)
+        while (above > base && rect_messages.y0 <= rect_messages.y1)
         {
-            Chat_Message *msg = &history->messages[above-1];
-
-            init_drawn_history_text(text, msg->username, msg->content);
-            draw_text(screen, font, text, -1, x, y);
-
-            y += font->y_advance + ygap;
+            Chat_Message *message = &history->messages[above-1];
+            draw_message(screen, font, message, &rect_messages);
             above--;
         }
     }
@@ -141,7 +171,7 @@ draw_session(Florilia_Offscreen_Buffer *screen, Session *session, Font *font)
 }
 
 internal void
-add_message(Chat_History *history, char *name, u16 name_len, char *msg, u16 msg_len)
+add_message(Chat_History *history, char *name, u16 name_len, char *msg, u16 msg_len, s64 time_posix)
 {
     // reserve message
     u32 index;
@@ -168,10 +198,14 @@ add_message(Chat_History *history, char *name, u16 name_len, char *msg, u16 msg_
 
     // update data
     Chat_Message *message = &history->messages[index];
+
     memcpy(message->username, name, name_len);
-    memcpy(message->content,  msg,  msg_len);
     message->username[name_len] = '\0';
+
+    memcpy(message->content, msg, msg_len);
     message->content[msg_len] = '\0';
+
+    message->time_posix = time_posix;
 } 
 
 internal void
@@ -309,8 +343,10 @@ session_process_netman_buff(Session *session, Network_Manager *netman)
         char *msg  = name + desc->sender_len;
         u16 name_len = desc->sender_len;
         u16 msg_len = desc->message_len;
+        s64 time_posix = desc->time_posix;
 
-        add_message(&session->history, name, name_len, msg, msg_len);
+
+        add_message(&session->history, name, name_len, msg, msg_len, time_posix);
 
         s32 size_processed = desc_size + desc->message_len + desc->sender_len;
         netman_release_size(netman, size_processed);
